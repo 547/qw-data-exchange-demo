@@ -1,0 +1,94 @@
+/**
+ * 引用 iOS 系统库，示例如下：
+ * import { UIDevice } from "UIKit";
+ * [可选实现，按需引入]
+ */
+
+/* 引入 interface.uts 文件中定义的变量 */
+import { DataExchangeApiOptions, DataExchangeDataListener, DataExchangeCallback, PostDataToNative, ListenDataFromNative, RemoveDataListener, RemoveDataListeners, listData } from '../interface.uts';
+import { NotificationCenter, Notification } from 'Foundation';
+/**
+ * 发送数据给原生
+ */
+export const postDataToNative : PostDataToNative = function (options : DataExchangeApiOptions) {
+	UniappDataPoster.post(options.name, options.data);
+}
+/**
+ * 监听原生发来的数据
+ */
+export const listenDataFromNative : ListenDataFromNative = function (name : string, callback : DataExchangeCallback) : DataExchangeDataListener {
+	const listener = new UniappDataListener();
+	listener.listen(name, callback);
+	return listener;
+}
+/**
+ * 移除对原生某个消息的监听
+ */
+export const removeDataListener : RemoveDataListener = function (listener : DataExchangeDataListener, name : string) {
+	const uniappDataListener = listener as UniappDataListener;
+	uniappDataListener.removeListener(name);
+}
+/**
+ * 移除对listener所有的监听
+ */
+export const removeDataListeners : RemoveDataListeners = function (listener : DataExchangeDataListener) {
+	const uniappDataListener = listener as UniappDataListener;
+	uniappDataListener.removeListeners();
+}
+// 使用 @UTSJS.keepAlive 注解方式，不限制参数个数
+@UTSJS.keepAlive
+export function listData(name : string, callback : DataExchangeCallback) : DataExchangeDataListener {
+	const listener = new UniappDataListener();
+	listener.listen(name, callback);
+	return listener;
+}
+
+export class UniappDataListener implements DataExchangeDataListener {
+	private callback ?: DataExchangeCallback;
+	/**
+	 * 监听原生发送的消息
+	 */
+	listen(name : string, callback : DataExchangeCallback) : void {
+		this.callback = callback;
+		const notificationName = new Notification.Name(name);
+		const method = Selector("handleReceiveMessage:");//接收通知消息的方法名
+		NotificationCenter.default.addObserver(this, selector = method, name = notificationName, object = null);
+		console.log("开始对" + name + "进行监听");
+	}
+	/**
+	 * 收到原生发来的消息
+	 */
+	@objc private handleReceiveMessage(notification : Notification) {
+		const name = notification.name.rawValue;
+		const userInfo = notification.userInfo as unknown as Map<string, any>;
+		console.log("收到" + name + "的通知，数据为：", userInfo);
+		if (userInfo != null) {
+			this.callback?.(userInfo);
+		}
+	}
+	/**
+	 * 移除对name的监听
+	 */
+	removeListener(name : string) : void {
+		const notificationName = new Notification.Name(name);
+		NotificationCenter.default.removeObserver(this, name = notificationName, object = null);
+		console.log("移除对" + name + "的监听");
+	}
+	/**
+	 * 移除当前监听者对所有消息的监听
+	 */
+	removeListeners() : void {
+		NotificationCenter.default.removeObserver(this);
+		console.log("移除当前监听者对所有消息的监听");
+	}
+}
+export class UniappDataPoster {
+	/**
+	 * 发送数据给原生
+	 */
+	static post(name : string, data : Map<string, any>) : void {
+		const notificationName = new Notification.Name(name);
+		NotificationCenter.default.post(name = notificationName, object = null, userInfo = data);
+		console.log("发送了" + name + "通知，数据为：", data);
+	}
+}

@@ -1,0 +1,29 @@
+/**
+ * interface.uts
+ * uts插件接口定义文件，按规范定义接口文件可以在HBuilderX中更好的做到语法提示
+ */
+export type DataExchangeApiOptions = {
+	name : string
+	data : Map<string, any>
+}
+export interface DataExchangeDataListener {
+};
+export type DataExchangeCallback = (data : Map<string, any>) => void
+
+/**
+ * 发送数据给原生
+ */
+export type PostDataToNative = (options : DataExchangeApiOptions) => void
+/**
+ * 监听原生发来的数据
+ */
+export type ListenDataFromNative = (name : string, callback : DataExchangeCallback) => DataExchangeDataListener
+/**
+ * 移除对原生某个消息的（name）监听
+ */
+export type RemoveDataListener = (listener : DataExchangeDataListener, name : string) => void
+
+/**
+ * 移除对listener所有的监听
+ */
+export type RemoveDataListeners = (listener : DataExchangeDataListener) => void

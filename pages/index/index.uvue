@@ -1,0 +1,74 @@
+<template>
+	<view>
+		<image class="logo" src="/static/logo.png"></image>
+		<view class="text-area">
+			<text class="title">{{title}}</text>
+		</view>
+		<view class="text-area">
+			<text class="title">{{test}}</text>
+		</view>
+		<view class="buttons">
+			<button class="button" @tap="clickTestButton" type="primary">测试按钮</button>
+		</view>
+	</view>
+</template>
+
+<script>
+	// 导入要使用的插件
+	import { DataExchangeApiOptions, DataExchangeDataListener, postDataToNative, listenDataFromNative, listData, removeDataListener, removeDataListeners } from "@/uni_modules/qw-data-exchange";
+	export default {
+
+		data() {
+			return {
+				title: 'title',
+				test: '',
+				nativeDataListeners: [] as DataExchangeDataListener[],
+			}
+		},
+		onLoad() {
+			console.debug('onLoad')
+			let nativeTestListener = listData("nativeTest", (data : Map<string, any>) => {
+				console.log('收到数据:', data)
+				this.title = data["title"]
+			})
+			let uniappTestListener = listData("uniappTest", (data : Map<string, any>) => {
+				console.log('收到数据:', data)
+				this.title = data["title"]
+			})
+			this.nativeDataListeners = [nativeTestListener, uniappTestListener]
+		},
+		onUnload() {
+			for (var index = 0; index < this.nativeDataListeners.length; index++) {
+				var element = this.nativeDataListeners[index];
+				removeDataListeners(element)
+			}
+		},
+		methods: {
+			clickTestButton() {
+				console.debug('点击了测试按钮')
+				let options = {
+					name: "uniappTest",
+					data: {
+						"title": "1233",
+					},
+				} as DataExchangeApiOptions;
+				postDataToNative(options);
+
+			},
+		}
+	}
+</script>
+
+<style>
+	.logo {
+		height: 100px;
+		width: 100px;
+		margin: 100px auto 25px auto;
+	}
+
+	.title {
+		font-size: 18px;
+		color: #8f8f94;
+		text-align: center;
+	}
+</style>
