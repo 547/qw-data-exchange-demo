@@ -1,6 +1,6 @@
 import Foundation
 
-public class NotificationListener {
+public class DataExchangeNotificationListener {
     public typealias DataCallback = ([String: Any]) -> Void
     public init() {}
     /// 监听uniapp发送的数据
@@ -27,7 +27,7 @@ public class NotificationListener {
         NotificationCenter.default.removeObserver(self)
     }
 }
-public class NotificationPoster {
+public class DataExchangeNotificationPoster {
     /// 发送给数据
     public static func post(name: String, data: [String: Any]) -> Void {
         print("发送\(name)消息，内容为：\n\(data)")

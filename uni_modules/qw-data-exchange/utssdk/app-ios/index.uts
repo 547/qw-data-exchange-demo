@@ -47,7 +47,7 @@ export const removeDataListeners : RemoveDataListeners = function (listener : Da
 
 export class DataExchangeDataListener implements DataListener {
 	private callback ?: DataExchangeCallback;
-	private notificationListener = new NotificationListener();
+	private notificationListener = new DataExchangeNotificationListener();
 	/**
 	 * 监听原生发送的消息
 	 */
@@ -76,6 +76,6 @@ export class DataExchangeDataPoster {
 	 * 发送数据给原生
 	 */
 	static post(name : string, data : Map<string, any>) : void {
-		NotificationPoster.post(name = name, data = data)
+		DataExchangeNotificationPoster.post(name = name, data = data)
 	}
 }
