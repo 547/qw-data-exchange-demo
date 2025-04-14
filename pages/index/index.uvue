@@ -15,23 +15,23 @@
 
 <script>
 	// 导入要使用的插件
-	import { DataExchangeApiOptions, DataExchangeDataListener, postDataToNative, listenDataFromNative, listData, removeDataListener, removeDataListeners } from "@/uni_modules/qw-data-exchange";
+	import { DataExchangeApiOptions, DataListener, postData, listen, removeDataListener, removeDataListeners } from "@/uni_modules/qw-data-exchange";
 	export default {
 
 		data() {
 			return {
 				title: 'title',
 				test: '',
-				nativeDataListeners: [] as DataExchangeDataListener[],
+				nativeDataListeners: [] as DataListener[],
 			}
 		},
 		onLoad() {
 			console.debug('onLoad')
-			let nativeTestListener = listData("nativeTest", (data : Map<string, any>) => {
+			let nativeTestListener = listen("nativeTest", (data : Map<string, any>) => {
 				console.log('收到数据:', data)
 				this.title = data["title"]
 			})
-			let uniappTestListener = listData("uniappTest", (data : Map<string, any>) => {
+			let uniappTestListener = listen("uniappTest", (data : Map<string, any>) => {
 				console.log('收到数据:', data)
 				this.title = data["title"]
 			})
@@ -49,10 +49,10 @@
 				let options = {
 					name: "uniappTest",
 					data: {
-						"title": "1233",
+						"title": "1",
 					},
 				} as DataExchangeApiOptions;
-				postDataToNative(options);
+				postData(options);
 
 			},
 		}
