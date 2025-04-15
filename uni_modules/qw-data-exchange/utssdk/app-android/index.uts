@@ -1,70 +1,143 @@
+import BroadcastReceiver from 'android.content.BroadcastReceiver'
+import Context from 'android.content.Context'
+import Intent from 'android.content.Intent'
+import IntentFilter from 'android.content.IntentFilter'
+import Build from 'android.os.Build'
+import Bundle from 'android.os.Bundle'
+import { DataExchangeApiOptions, DataListener, DataExchangeCallback, DataExchangeAndroidCallback, PostData, ListenData, RemoveDataListener, RemoveDataListeners } from '../interface.uts';
 /**
- * 引用 Android 系统库，示例如下：
- * import { Context } from "android.content.Context";
- * [可选实现，按需引入]
+ * 发送数据
  */
-
-/* 引入 interface.uts 文件中定义的变量 */
-import { DataExchangeApiOptions, DataExchangeDataListener, DataExchangeCallback, PostDataToNative, ListenDataFromNative, RemoveDataListener, RemoveDataListeners } from '../interface.uts';
-
-
-/**
- * 引入三方库
- * [可选实现，按需引入]
- *
- * 在 Android 平台引入三方库有以下两种方式：
- * 1、[推荐] 通过 仓储 方式引入，将 三方库的依赖信息 配置到 config.json 文件下的 dependencies 字段下。详细配置方式[详见](https://uniapp.dcloud.net.cn/plugin/uts-plugin.html#dependencies)
- * 2、直接引入，将 三方库的aar或jar文件 放到libs目录下。更多信息[详见](https://uniapp.dcloud.net.cn/plugin/uts-plugin.html#android%E5%B9%B3%E5%8F%B0%E5%8E%9F%E7%94%9F%E9%85%8D%E7%BD%AE)
- *
- * 在通过上述任意方式依赖三方库后，使用时需要在文件中 import，如下示例：
- * import { LottieAnimationView } from 'com.airbnb.lottie.LottieAnimationView'
- */
-
-/**
- * UTSAndroid 为平台内置对象，不需要 import 可直接调用其API，[详见](https://uniapp.dcloud.net.cn/uts/utsandroid.html#utsandroid)
- */
-
-
-/**
- * 异步方法
- *
- * uni-app项目中（vue/nvue）调用示例：
- * 1、引入方法声明 import { myApi } from "@/uni_modules/uts-api"
- * 2、方法调用
- * myApi({
- *   paramA: false,
- *   complete: (res) => {
- *      console.log(res)
- *   }
- * });
- * uni-app x项目（uvue）中调用示例：
- * 1、引入方法及参数声明 import { myApi, MyApiOptions } from "@/uni_modules/uts-api";
- * 2、方法调用
- * let options = {
- *   paramA: false,
- *   complete: (res : any) => {
- *     console.log(res)
- *   }
- * } as MyApiOptions;
- * myApi(options);
- *
- */
-export const postDataToNative : PostDataToNative = function (options : DataExchangeApiOptions) {
-
-}
-
-export const listenDataFromNative : ListenDataFromNative = function (name : string, callback : DataExchangeCallback) : DataExchangeDataListener {
-	return new UniappDataListener();
-}
-
-export const removeDataListener : RemoveDataListener = function (listener : DataExchangeDataListener, name : string) {
-
+export const postData : PostData = function (options : DataExchangeApiOptions) {
+	DataExchangeDataPoster.post(options.name, options.data)
 }
 /**
- * 移除对listener所有的监听
+ * 监听发来的数据 callback 只能触发一次
  */
-export const removeDataListeners : RemoveDataListeners = function (listener : DataExchangeDataListener) {
-
+export const listenData : ListenData = function (name : string, callback : DataExchangeCallback) : DataListener {
+	const dataExchangeDataListener = new DataExchangeDataListener();
+	dataExchangeDataListener.listen(name, callback)
+	return dataExchangeDataListener
+}
+/**
+ * 监听发来的数据 callback 可持续触发
+ */
+@UTSJS.keepAlive
+export function listen(name : string, callback : DataExchangeCallback) : DataListener {
+	const dataExchangeDataListener = new DataExchangeDataListener();
+	dataExchangeDataListener.listen(name, callback)
+	return dataExchangeDataListener
+}
+/**
+ * 移除对的监听 和 removeDataListeners是一样的
+ */
+export const removeDataListener : RemoveDataListener = function (listener : DataListener, name : string) {
+	const dataExchangeDataListener = listener as DataExchangeDataListener | null
+	dataExchangeDataListener?.removeListener()
+}
+/**
+ * 移除对的监听
+ */
+export const removeDataListeners : RemoveDataListeners = function (listener : DataListener) {
+	const dataExchangeDataListener = listener as DataExchangeDataListener | null
+	dataExchangeDataListener?.removeListener()
 }
 
-export class UniappDataListener implements DataExchangeDataListener { }
+
+
+export class DataExchangeDataListener implements DataListener {
+	private callback : DataExchangeCallback | null = null;
+	private reciver : DataExchangeReciver | null = null;
+	private context : Context | null = null;
+
+	/**
+	 * 监听原生发送的消息
+	 */
+	@UTSJS.keepAlive
+	listen(name : string, callback : DataExchangeCallback) : void {
+		this.callback = callback;
+		this.registerReceiver(name, (_context : any, intent : any) => {
+			const intentValue = intent as Intent
+			const action = intentValue.getAction()
+			if (action.equals(name)) {
+				const data = this.intentExtrasToMap(intentValue)
+				this.callback?.(data)
+			}
+		})
+	}
+	/**
+	 * 移除当前监听者
+	 */
+	removeListener() : void {
+		if (this.reciver != null && this.context != null) {
+			this.context!.unregisterReceiver(this.reciver!)
+		}
+		this.reciver = null
+		this.callback = null
+	}
+	/**
+	 * 注册广播接收器
+	 */
+	@UTSJS.keepAlive
+	registerReceiver(name : string, callback : DataExchangeAndroidCallback) : void {
+		const context = UTSAndroid.getUniActivity()
+		if (context != null) {
+			this.context = context
+			this.reciver = new DataExchangeReciver(callback)
+			const intentFilter = IntentFilter(name)
+			if (Build.VERSION.SDK_INT >= 33) {
+				context.registerReceiver(this.reciver!, intentFilter, Context.RECEIVER_EXPORTED)
+			} else {
+				context.registerReceiver(this.reciver!, intentFilter)
+			}
+		} else {
+			console.error("注册BroadcastReceiver失败,没有获取到context")
+		}
+	}
+	/**
+	 * 将Intent的Extras转成map
+	 */
+	intentExtrasToMap(intent : Intent) : Map<string, any> {
+		const bundle = intent.getExtras()
+		return this.bundleToMap(bundle)
+	}
+	/**
+	 * 将bundle转成map
+	 */
+	bundleToMap(bundle : Bundle) : Map<string, any> {
+		const map = new Map<string, any>();
+		bundle.keySet().forEach((value : any, key : string, _set : Set<any>) => {
+			map.set(key, value);
+		})
+		return map
+	}
+}
+export class DataExchangeReciver extends BroadcastReceiver {
+	private callback : DataExchangeAndroidCallback | null = null;
+	@UTSJS.keepAlive
+		constructor(callback : DataExchangeAndroidCallback) {
+			super();
+			this.callback = callback;
+		}
+	override onReceive(context : Context, intent : Intent) {
+		this.callback?.(context, intent)
+	}
+}
+
+export class DataExchangeDataPoster {
+	/**
+	 * 发送普通广播
+	 */
+	static post(name : string, data : Map<string, any>) : void {
+		const context = UTSAndroid.getUniActivity()
+		if (context != null) {
+			var intent = new Intent(name);
+			data.forEach((value : any, key : string, _map : Map<string, any>) => {
+				intent.putExtra(key, value);
+			})
+			context.sendBroadcast(intent)
+		} else {
+			console.error("发送Broadcast失败，没有获取到context")
+		}
+	}
+}

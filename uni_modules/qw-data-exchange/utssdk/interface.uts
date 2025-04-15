@@ -1,7 +1,4 @@
-/**
- * interface.uts
- * uts插件接口定义文件，按规范定义接口文件可以在HBuilderX中更好的做到语法提示
- */
+
 export type DataExchangeApiOptions = {
 	name : string
 	data : Map<string, any>
@@ -9,7 +6,7 @@ export type DataExchangeApiOptions = {
 export interface DataListener {
 };
 export type DataExchangeCallback = (data : Map<string, any>) => void
-
+export type DataExchangeAndroidCallback = (context : any, intent : any) => void
 /**
  * 发送数据给原生
  */
