@@ -1,12 +1,12 @@
 {
   "id": "qw-data-exchange",
   "displayName": "qw-data-exchange",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "qw-data-exchange",
   "keywords": [
     "qw-data-exchange"
 ],
-  "repository": "",
+  "repository": "https://github.com/547/qw-data-exchange-demo.git",
   "engines": {
     "HBuilderX": "^3.6.8"
   },
