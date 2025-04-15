@@ -1,0 +1,77 @@
+<template>
+	<view>
+		<view class="text-area">
+			<text class="title">{{title}}</text>
+		</view>
+		<view class="text-area">
+			<text class="title">{{test}}</text>
+		</view>
+		<view class="buttons">
+			<button class="button" @tap="clickTestButton1" type="primary">测试按钮1</button>
+		</view>
+		<view class="buttons">
+			<button class="button" @tap="clickTestButton2" type="primary">测试按钮2</button>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { DataExchangeApiOptions, postData, listen, DataListener } from "@/uni_modules/qw-data-exchange";
+
+	export default {
+		data() {
+			return {
+				title: 'title',
+				test: '',
+				nativeDataListeners: [] as DataListener[],
+			}
+		},
+		onLoad() {
+			console.debug('onLoad')
+
+			const nativeTestListener = listen("nativeTest", (data : Map<string, any>) => {
+				console.log('test收到数据:', data)
+				this.title = data["title"]
+			})
+			const uniappTestListener = listen("uniappTest", (data : Map<string, any>) => {
+				console.log('test收到数据:', data)
+				this.test = data["title"]
+			})
+			this.nativeDataListeners = [nativeTestListener, uniappTestListener]
+		},
+		onUnload() {
+			this.nativeDataListeners.forEach(element => {
+				element.removeListener()
+			});
+		},
+		methods: {
+			clickTestButton1() {
+				let options = {
+					name: "nativeTest",
+					data: {
+						"title": "11111",
+					},
+				} as DataExchangeApiOptions;
+				postData(options)
+			},
+			clickTestButton2() {
+				let options = {
+					name: "uniappTest",
+					data: {
+						"title": "1233",
+					},
+				} as DataExchangeApiOptions;
+				postData(options)
+			},
+		}
+	}
+</script>
+
+<style>
+	.title {
+		font-size: 18px;
+		color: #8f8f94;
+		text-align: center;
+		margin: 100px auto 25px auto;
+	}
+</style>

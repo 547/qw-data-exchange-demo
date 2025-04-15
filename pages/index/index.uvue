@@ -15,7 +15,7 @@
 
 <script>
 	// 导入要使用的插件
-	import { DataExchangeApiOptions, DataListener, postData, listen, removeDataListener, removeDataListeners } from "@/uni_modules/qw-data-exchange";
+	import { DataExchangeApiOptions, DataListener, postData, listen } from "@/uni_modules/qw-data-exchange";
 	export default {
 
 		data() {
@@ -28,32 +28,31 @@
 		onLoad() {
 			console.debug('onLoad')
 			let nativeTestListener = listen("nativeTest", (data : Map<string, any>) => {
-				console.log('收到数据:', data)
+				console.log('index收到数据:', data)
 				this.title = data["title"]
 			})
 			let uniappTestListener = listen("uniappTest", (data : Map<string, any>) => {
-				console.log('收到数据:', data)
-				this.title = data["title"]
+				console.log('index收到数据:', data)
+				this.test = data["title"]
 			})
 			this.nativeDataListeners = [nativeTestListener, uniappTestListener]
 		},
 		onUnload() {
-			for (var index = 0; index < this.nativeDataListeners.length; index++) {
-				var element = this.nativeDataListeners[index];
-				removeDataListeners(element)
-			}
+			this.nativeDataListeners.forEach(element => {
+				element.removeListener()
+			});
 		},
 		methods: {
 			clickTestButton() {
 				console.debug('点击了测试按钮')
-				let options = {
-					name: "uniappTest",
-					data: {
-						"title": "1",
+				uni.navigateTo({
+					url: '/pages/test/test',
+					success: res => { },
+					fail: (error) => {
+						console.debug(error)
 					},
-				} as DataExchangeApiOptions;
-				postData(options);
-
+					complete: () => { }
+				})
 			},
 		}
 	}
