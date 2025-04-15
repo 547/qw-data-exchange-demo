@@ -1,4 +1,5 @@
 # qw-data-exchange 使用示例
+### uni-app x 使用示例
 ```
 <script>
 	// 导入要使用的插件
@@ -63,6 +64,43 @@
 		}
 	}
 </script>
+```
+### iOS 使用示例
+```
+import UIKit
+import DCloudUniappRuntime
+import unimoduleQwDataExchange
+
+class ViewController: UIViewController {
+    var dataListeners  = [DataListener]();
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // 添加监听
+       let listener = listen("uniappTest") { data in
+            print("收到uniapp x的数据\(data)")
+        }
+        dataListeners.add(listener)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        // 移除监听
+        for item in dataListeners {
+            item.removeListener()
+        }
+    }
+
+    @IBAction func tapDataButton(_ sender: Any) {
+        // 发送数据
+        let options = DataExchangeApiOptions()
+        options.name = "nativeData"
+        options.data = ["title": "4566"]
+        postData(options)
+    }
+
+}
 ```
 ### 开发文档
 [UTS 语法](https://uniapp.dcloud.net.cn/tutorial/syntax-uts.html)
