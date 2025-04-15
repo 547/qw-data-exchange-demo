@@ -19,6 +19,7 @@
 </template>
 
 <script>
+	// 导入要使用的插件
 	import { DataExchangeApiOptions, postData, listen, DataListener } from "@/uni_modules/qw-data-exchange";
 
 	export default {
@@ -31,24 +32,26 @@
 		},
 		onLoad() {
 			console.debug('onLoad')
-
-			const nativeTestListener = listen("nativeTest", (data : Map<string, any>) => {
+			// 添加监听
+			const listener1 = listen("nativeTest", (data : Map<string, any>) => {
 				console.log('test收到数据:', data)
 				this.title = data["title"]
 			})
-			const uniappTestListener = listen("uniappTest", (data : Map<string, any>) => {
+			const listener2 = listen("uniappTest", (data : Map<string, any>) => {
 				console.log('test收到数据:', data)
 				this.test = data["title"]
 			})
-			this.dataListeners = [nativeTestListener, uniappTestListener]
+			this.dataListeners = [listener1, listener2]
 		},
 		onUnload() {
 			this.dataListeners.forEach(element => {
+				// 移除监听
 				element.removeListener()
 			});
 		},
 		methods: {
 			clickTestButton1() {
+				// 发送数据
 				let options = {
 					name: "nativeTest",
 					data: {
