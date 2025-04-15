@@ -12,6 +12,9 @@
 		<view class="buttons">
 			<button class="button" @tap="clickTestButton2" type="primary">测试按钮2</button>
 		</view>
+		<view class="buttons">
+			<button class="button" @tap="clickTestButton3" type="primary">测试按钮3</button>
+		</view>
 	</view>
 </template>
 
@@ -23,7 +26,7 @@
 			return {
 				title: 'title',
 				test: '',
-				nativeDataListeners: [] as DataListener[],
+				dataListeners: [] as DataListener[],
 			}
 		},
 		onLoad() {
@@ -37,10 +40,10 @@
 				console.log('test收到数据:', data)
 				this.test = data["title"]
 			})
-			this.nativeDataListeners = [nativeTestListener, uniappTestListener]
+			this.dataListeners = [nativeTestListener, uniappTestListener]
 		},
 		onUnload() {
-			this.nativeDataListeners.forEach(element => {
+			this.dataListeners.forEach(element => {
 				element.removeListener()
 			});
 		},
@@ -63,6 +66,15 @@
 				} as DataExchangeApiOptions;
 				postData(options)
 			},
+			clickTestButton3() {
+				let options = {
+					name: "nativeData",
+					data: {
+						"title": "1233",
+					},
+				} as DataExchangeApiOptions;
+				postData(options)
+			},
 		}
 	}
 </script>
@@ -73,5 +85,9 @@
 		color: #8f8f94;
 		text-align: center;
 		margin: 100px auto 25px auto;
+	}
+
+	.button {
+		margin: 10px auto 0px auto;
 	}
 </style>

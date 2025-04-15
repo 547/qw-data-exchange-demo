@@ -22,7 +22,7 @@
 			return {
 				title: 'title',
 				test: '',
-				nativeDataListeners: [] as DataListener[],
+				dataListeners: [] as DataListener[],
 			}
 		},
 		onLoad() {
@@ -35,10 +35,10 @@
 				console.log('index收到数据:', data)
 				this.test = data["title"]
 			})
-			this.nativeDataListeners = [nativeTestListener, uniappTestListener]
+			this.dataListeners = [nativeTestListener, uniappTestListener]
 		},
 		onUnload() {
-			this.nativeDataListeners.forEach(element => {
+			this.dataListeners.forEach(element => {
 				element.removeListener()
 			});
 		},

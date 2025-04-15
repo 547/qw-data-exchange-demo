@@ -1,8 +1,14 @@
 <script lang="uts">
+	import { DataExchangeApiOptions, postData, listen, DataListener } from "@/uni_modules/qw-data-exchange";
 	let firstBackTime = 0
+	let dataListeners = [] as DataListener[]
 	export default {
 		onLaunch: function () {
 			console.log('App Launch')
+			const nativeDataListener = listen("nativeData", (data : Map<string, any>) => {
+				console.log('app收到数据:', data)
+			})
+			dataListeners.push(nativeDataListener)
 		},
 		onShow: function () {
 			console.log('App Show')
@@ -30,6 +36,9 @@
 		// #endif
 		onExit: function () {
 			console.log('App Exit')
+			dataListeners.forEach(element => {
+				element.removeListener()
+			});
 		},
 	}
 </script>
