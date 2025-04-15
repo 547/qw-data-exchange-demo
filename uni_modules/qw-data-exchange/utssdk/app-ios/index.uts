@@ -25,6 +25,7 @@ export class DataExchangeDataListener implements DataListener {
 	 */
 	@UTSJS.keepAlive
 	listen(name : string, callback : DataExchangeCallback) : void {
+		console.debug("添加对" + name + "的监听")
 		this.callback = callback;
 		this.notificationListener = new DataExchangeNotificationListener();
 		this.notificationListener?.listen(name = name, callback = (data : Map<string, any>) => {
