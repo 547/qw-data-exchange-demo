@@ -1,18 +1,10 @@
 
-import { DataExchangeApiOptions, DataListener, DataExchangeCallback, PostData, ListenData, RemoveDataListener, RemoveDataListeners } from '../interface.uts';
+import { DataExchangeApiOptions, DataListener, DataExchangeCallback, PostData } from '../interface.uts';
 /**
  * 发送数据
  */
 export const postData : PostData = function (options : DataExchangeApiOptions) {
 	DataExchangeDataPoster.post(options.name, options.data);
-}
-/**
- * 监听发来的数据 callback 只能触发一次
- */
-export const listenData : ListenData = function (name : string, callback : DataExchangeCallback) : DataListener {
-	const listener = new DataExchangeDataListener();
-	listener.listen(name, callback);
-	return listener;
 }
 /**
  * 监听发来的数据 callback 可持续触发
@@ -22,21 +14,6 @@ export function listen(name : string, callback : DataExchangeCallback) : DataLis
 	const listener = new DataExchangeDataListener();
 	listener.listen(name, callback);
 	return listener;
-}
-/**
- * 移除对某个消息的监听
- */
-export const removeDataListener : RemoveDataListener = function (listener : DataListener, name : string) {
-	const uniappDataListener = listener as DataExchangeDataListener | null;
-	uniappDataListener?.removeListener(name);
-
-}
-/**
- * 移除对listener所有的监听
- */
-export const removeDataListeners : RemoveDataListeners = function (listener : DataListener) {
-	const uniappDataListener = listener as DataExchangeDataListener | null;
-	uniappDataListener?.removeListeners();
 }
 
 
@@ -57,13 +34,15 @@ export class DataExchangeDataListener implements DataListener {
 	/**
 	 * 移除对name的监听
 	 */
-	removeListener(name : string) : void {
+	removeListenerWithName(name : string) : void {
+		console.debug("移除当前监听者对" + name + "的监听")
 		this.notificationListener?.removeListener(name = name)
 	}
 	/**
 	 * 移除当前监听者对所有消息的监听
 	 */
-	removeListeners() : void {
+	removeListener() : void {
+		console.debug("移除当前监听者对所有消息的监听")
 		this.notificationListener?.removeListener()
 		this.notificationListener = null
 		this.callback = null

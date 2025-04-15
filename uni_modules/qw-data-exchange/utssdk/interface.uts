@@ -4,23 +4,13 @@ export type DataExchangeApiOptions = {
 	data : Map<string, any>
 }
 export interface DataListener {
-};
+	listen(name : string, callback : DataExchangeCallback) : void
+	removeListener() : void
+	removeListenerWithName(name : string) : void
+}
 export type DataExchangeCallback = (data : Map<string, any>) => void
 export type DataExchangeAndroidCallback = (context : any, intent : any) => void
 /**
  * 发送数据给原生
  */
 export type PostData = (options : DataExchangeApiOptions) => void
-/**
- * 监听原生发来的数据
- */
-export type ListenData = (name : string, callback : DataExchangeCallback) => DataListener
-/**
- * 移除对原生某个消息的（name）监听
- */
-export type RemoveDataListener = (listener : DataListener, name : string) => void
-
-/**
- * 移除对listener所有的监听
- */
-export type RemoveDataListeners = (listener : DataListener) => void

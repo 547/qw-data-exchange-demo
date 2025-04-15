@@ -4,20 +4,12 @@ import Intent from 'android.content.Intent'
 import IntentFilter from 'android.content.IntentFilter'
 import Build from 'android.os.Build'
 import Bundle from 'android.os.Bundle'
-import { DataExchangeApiOptions, DataListener, DataExchangeCallback, DataExchangeAndroidCallback, PostData, ListenData, RemoveDataListener, RemoveDataListeners } from '../interface.uts';
+import { DataExchangeApiOptions, DataListener, DataExchangeCallback, DataExchangeAndroidCallback, PostData } from '../interface.uts';
 /**
  * 发送数据
  */
 export const postData : PostData = function (options : DataExchangeApiOptions) {
 	DataExchangeDataPoster.post(options.name, options.data)
-}
-/**
- * 监听发来的数据 callback 只能触发一次
- */
-export const listenData : ListenData = function (name : string, callback : DataExchangeCallback) : DataListener {
-	const dataExchangeDataListener = new DataExchangeDataListener();
-	dataExchangeDataListener.listen(name, callback)
-	return dataExchangeDataListener
 }
 /**
  * 监听发来的数据 callback 可持续触发
@@ -28,27 +20,13 @@ export function listen(name : string, callback : DataExchangeCallback) : DataLis
 	dataExchangeDataListener.listen(name, callback)
 	return dataExchangeDataListener
 }
-/**
- * 移除对的监听 和 removeDataListeners是一样的
- */
-export const removeDataListener : RemoveDataListener = function (listener : DataListener, name : string) {
-	const dataExchangeDataListener = listener as DataExchangeDataListener | null
-	dataExchangeDataListener?.removeListener()
-}
-/**
- * 移除对的监听
- */
-export const removeDataListeners : RemoveDataListeners = function (listener : DataListener) {
-	const dataExchangeDataListener = listener as DataExchangeDataListener | null
-	dataExchangeDataListener?.removeListener()
-}
 
 
 
 export class DataExchangeDataListener implements DataListener {
 	private callback : DataExchangeCallback | null = null;
 	private reciver : DataExchangeReciver | null = null;
-	private context : Context | null = null;
+	private context : Activity | null = null;
 
 	/**
 	 * 监听原生发送的消息
@@ -66,9 +44,16 @@ export class DataExchangeDataListener implements DataListener {
 		})
 	}
 	/**
+	 * 移除对name的监听
+	 */
+	removeListenerWithName(name : string) : void {
+		this.removeListener()
+	}
+	/**
 	 * 移除当前监听者
 	 */
 	removeListener() : void {
+		console.debug("移除当前监听者对所有消息的监听")
 		if (this.reciver != null && this.context != null) {
 			this.context!.unregisterReceiver(this.reciver!)
 		}
@@ -79,7 +64,7 @@ export class DataExchangeDataListener implements DataListener {
 	 * 注册广播接收器
 	 */
 	@UTSJS.keepAlive
-	registerReceiver(name : string, callback : DataExchangeAndroidCallback) : void {
+	private registerReceiver(name : string, callback : DataExchangeAndroidCallback) : void {
 		const context = UTSAndroid.getUniActivity()
 		if (context != null) {
 			this.context = context
@@ -97,14 +82,14 @@ export class DataExchangeDataListener implements DataListener {
 	/**
 	 * 将Intent的Extras转成map
 	 */
-	intentExtrasToMap(intent : Intent) : Map<string, any> {
+	private intentExtrasToMap(intent : Intent) : Map<string, any> {
 		const bundle = intent.getExtras()
 		return this.bundleToMap(bundle)
 	}
 	/**
 	 * 将bundle转成map
 	 */
-	bundleToMap(bundle : Bundle) : Map<string, any> {
+	private bundleToMap(bundle : Bundle) : Map<string, any> {
 		const map = new Map<string, any>();
 		bundle.keySet().forEach((value : any, key : string, _set : Set<any>) => {
 			map.set(key, value);
