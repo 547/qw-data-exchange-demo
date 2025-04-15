@@ -3,7 +3,7 @@ import Foundation
 public class DataExchangeNotificationListener {
     public typealias DataCallback = ([String: Any]) -> Void
     public init() {}
-    /// 监听uniapp发送的数据
+    /// 监听发送的数据
     public func listen(name: String, callback: @escaping DataCallback) -> Void {
         NotificationCenter.default.addObserver(forName:  Notification.Name(rawValue: name), object: nil, queue: nil) { notification in
             if let data = notification.userInfo as? [String: Any] {

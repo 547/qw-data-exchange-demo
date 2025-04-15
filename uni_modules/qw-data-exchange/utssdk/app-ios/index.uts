@@ -1,19 +1,13 @@
-/**
- * 引用 iOS 系统库，示例如下：
- * import { UIDevice } from "UIKit";
- * [可选实现，按需引入]
- */
 
-/* 引入 interface.uts 文件中定义的变量 */
 import { DataExchangeApiOptions, DataListener, DataExchangeCallback, PostData, ListenData, RemoveDataListener, RemoveDataListeners } from '../interface.uts';
 /**
- * 发送数据给原生
+ * 发送数据
  */
 export const postData : PostData = function (options : DataExchangeApiOptions) {
 	DataExchangeDataPoster.post(options.name, options.data);
 }
 /**
- * 监听原生发来的数据 callback 只能触发一次
+ * 监听发来的数据 callback 只能触发一次
  */
 export const listenData : ListenData = function (name : string, callback : DataExchangeCallback) : DataListener {
 	const listener = new DataExchangeDataListener();
@@ -21,7 +15,7 @@ export const listenData : ListenData = function (name : string, callback : DataE
 	return listener;
 }
 /**
- * 监听原生发来的数据 callback 可持续触发
+ * 监听发来的数据 callback 可持续触发
  */
 @UTSJS.keepAlive
 export function listen(name : string, callback : DataExchangeCallback) : DataListener {
@@ -30,31 +24,33 @@ export function listen(name : string, callback : DataExchangeCallback) : DataLis
 	return listener;
 }
 /**
- * 移除对原生某个消息的监听
+ * 移除对某个消息的监听
  */
 export const removeDataListener : RemoveDataListener = function (listener : DataListener, name : string) {
-	const uniappDataListener = listener as DataExchangeDataListener;
-	uniappDataListener.removeListener(name);
+	const uniappDataListener = listener as DataExchangeDataListener | null;
+	uniappDataListener?.removeListener(name);
+
 }
 /**
  * 移除对listener所有的监听
  */
 export const removeDataListeners : RemoveDataListeners = function (listener : DataListener) {
-	const uniappDataListener = listener as DataExchangeDataListener;
-	uniappDataListener.removeListeners();
+	const uniappDataListener = listener as DataExchangeDataListener | null;
+	uniappDataListener?.removeListeners();
 }
 
 
 export class DataExchangeDataListener implements DataListener {
-	private callback ?: DataExchangeCallback;
-	private notificationListener = new DataExchangeNotificationListener();
+	private callback : DataExchangeCallback | null = null;
+	private notificationListener : DataExchangeNotificationListener | null = null;
 	/**
-	 * 监听原生发送的消息
+	 * 监听指定的消息
 	 */
 	@UTSJS.keepAlive
 	listen(name : string, callback : DataExchangeCallback) : void {
 		this.callback = callback;
-		this.notificationListener.listen(name = name, callback = (data : Map<string, any>) => {
+		this.notificationListener = new DataExchangeNotificationListener();
+		this.notificationListener?.listen(name = name, callback = (data : Map<string, any>) => {
 			this.callback?.(data);
 		})
 	}
@@ -62,18 +58,20 @@ export class DataExchangeDataListener implements DataListener {
 	 * 移除对name的监听
 	 */
 	removeListener(name : string) : void {
-		this.notificationListener.removeListener(name = name)
+		this.notificationListener?.removeListener(name = name)
 	}
 	/**
 	 * 移除当前监听者对所有消息的监听
 	 */
 	removeListeners() : void {
-		this.notificationListener.removeListener()
+		this.notificationListener?.removeListener()
+		this.notificationListener = null
+		this.callback = null
 	}
 }
 export class DataExchangeDataPoster {
 	/**
-	 * 发送数据给原生
+	 * 发送数据
 	 */
 	static post(name : string, data : Map<string, any>) : void {
 		DataExchangeNotificationPoster.post(name = name, data = data)
